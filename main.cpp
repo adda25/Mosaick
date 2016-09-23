@@ -1,13 +1,5 @@
 #include "photo_composer.hpp"
 
-// try HSV
-// new logic similar pics
-// user inteface
-// - alpha/beta
-// - border
-// - divisions
-// - color transfer
-
 // export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
 
 int 
@@ -19,11 +11,6 @@ main(int argc, char** argv)
   std::string master_path = "./master/gatto.jpg";
   Mosaik mosaik = Mosaik().load_master_and_pics(master_path, pics_paths).create_output();
   cv::imwrite("./output.jpg", mosaik.output);
-
-
-  //mosaik.set_conf(600, false).load_master_and_pics(master_path, pics_paths).create_output();
-  //cv::imwrite("./output1.jpg", mosaik.output);
-
   return 0;
 }
 

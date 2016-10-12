@@ -27,21 +27,24 @@ private:
     uint height = 0;
     // Pics size
     uint sub_pic_size = 50; // [Computed]
-    uint divisions = 40;
-    uint master_scale = 4;
+    uint divisions = 80;
+    uint master_scale = 8;
     // Border
     bool border = true;
-    uint border_size = 10; // px
+    uint border_size = 2; // px
     // Alpha blending
     bool alpha_blending = true;
-    float alpha = 0.8;
+    float alpha = 0.7;
     // Color transfer
     bool color_transfer = false;
+    // Mult-offset 
+    uint multi_offset = 3;
   } mosaik_conf;
 
   typedef struct 
   {
-    cv::Mat loaded_image; // Resized
+    cv::Mat image;         // Original resized
+    cv::Mat loaded_image;  // Resized
     cv::Scalar mean;
     std::vector<std::pair<int,int>> at_col_row;
   } Pic;
@@ -49,7 +52,8 @@ private:
   void _load_master_from_path(std::string path);
   void _pic_preproc(Pic &pic);
   void _alpha_blending(const cv::Mat src1, const cv::Mat src2, cv::Mat &dst, float alpha);
-  void _similar_pic_for_img(cv::Mat target, Pic &out_similar_pic);
+  void _similar_pic_for_img(cv::Mat target, Pic &out_similar_pic, const uint row, const uint col);
+  uint _compares_rows_and_cols(Pic pic, const uint row, const uint col); 
 
   uint _state = 0;
 
@@ -59,7 +63,9 @@ private:
 public:
   cv::Mat output;
 
-  Mosaik() {};
+  Mosaik(const std::string master_path, const std::vector<std::string> folders) {
+    load_master_and_pics(master_path, folders);
+  };
   ~Mosaik() {};
 
   Mosaik load_master_and_pics(const std::string master_path, 
@@ -75,52 +81,5 @@ public:
                   uint master_scale = 4); 
 };
 
-
-
-
-
-
-
-
-class PhotoComposer
-{
-public:
-  cv::Mat output;
-
-  typedef struct 
-  {
-    cv::Mat image;
-    cv::Mat resized_image;
-    cv::Mat tr_image;
-    cv::Scalar mean;
-  } Pic;
-
-  PhotoComposer() {};
-  ~PhotoComposer() {};
- 
-  void load_pics_from_folder(std::string folder);
-  void load_master_from_path(std::string path, int divisions);
-  void create_output();
-
-private:
-  int _width  = 0;
-  int _height = 0;
-  int width  = 0;
-  int height = 0;
-  int _px_sub_img = 50;
-  std::vector<Pic> _pics;
-  std::vector<cv::Mat> _pics_hist;
-  cv::Mat _master;
-
-  void _tr_pic_to_square(Pic &p);
-  void _alpha_blending(cv::Mat &sub_pic, cv::Rect rect_sub_pic);
-  cv::Mat _get_most_similar_pic(cv::Rect rect);
-
-  Pic _find_most_similar_image(const cv::Mat sub_master);
-};
-
 #endif // __cplusplus
-
-
-
 #endif //_PHOTO_COMPOSER_

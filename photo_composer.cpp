@@ -11,23 +11,22 @@ Mosaik::load_master_and_pics(const std::string master_path, const std::vector<st
   for (auto &f : folders) {
     append_pics_for_folder(f);
   }
-  _state = 2;
   return *this;
 }
 
 Mosaik 
 Mosaik::append_pics_for_folder(std::string folder)
 {
-  if (_state != 1) { return *this; }
   std::vector<cv::String> fn; 
   cv::glob(folder, fn, true); 
   for (auto &image_name : fn) {
     Pic pic;
-    pic.loaded_image = cv::imread(image_name);
+    pic.image = cv::imread(image_name);
     _pic_preproc(pic); 
-    cv::resize(pic.loaded_image, pic.loaded_image, 
-               cv::Size(mosaik_conf.sub_pic_size, mosaik_conf.sub_pic_size));
-    pic.mean = cv::mean(pic.loaded_image);
+    cv::resize(pic.image, pic.image, 
+               cv::Size(mosaik_conf.max_load_size, mosaik_conf.max_load_size));
+    pic.mean = cv::mean(pic.image);
+    pic.image.copyTo(pic.loaded_image);
     _pics.push_back(pic);
     #if TTY_LOG
     std::cout << "Loading image: " << (std::addressof(image_name) - std::addressof(fn[0]) + 1) << " / " << fn.size() <<  " " << image_name << std::endl;   
@@ -60,13 +59,16 @@ Mosaik::_load_master_from_path(std::string path)
   } else {
     mosaik_conf.height = _height;
   }
-  _state = 1;
+  std::cout << "SUB SIZE: " << mosaik_conf.sub_pic_size << std::endl;
 }
 
 Mosaik 
 Mosaik::create_output()
 {
-  if (_state != 2) { return *this; }
+  for (auto &p : _pics) {
+    cv::resize(p.image, p.loaded_image, 
+               cv::Size(mosaik_conf.sub_pic_size, mosaik_conf.sub_pic_size));
+  }
   cv::Mat _output = cv::Mat(mosaik_conf.height, mosaik_conf.width, CV_8UC3);
   for (int i = 0; i < mosaik_conf.width / mosaik_conf.sub_pic_size; i++) {
     for (int k = 0; k < mosaik_conf.height / mosaik_conf.sub_pic_size; k++) {
@@ -104,7 +106,6 @@ Mosaik::create_output()
   #endif
   //transfer_image(_master, _output, _output);
   _output.copyTo(output);
-  _state = 0;
   return *this;
 }
 
@@ -117,7 +118,6 @@ Mosaik::set_conf(uint divisions,
                  float alpha,
                  uint master_scale)
 {
-  if (_state != 0) { return *this; }
   mosaik_conf.divisions = divisions;
   mosaik_conf.border = border;
   mosaik_conf.border_size = border_size;
@@ -129,10 +129,10 @@ Mosaik::set_conf(uint divisions,
 void 
 Mosaik::_pic_preproc(Pic &pic)
 {
-  if (pic.loaded_image.rows == pic.loaded_image.cols) return;
-  int square_size = pic.loaded_image.rows > pic.loaded_image.cols ? pic.loaded_image.cols : pic.loaded_image.rows;
-  cv::Mat squared_image = pic.loaded_image(cv::Rect(0, 0, square_size, square_size));
-  pic.loaded_image = squared_image;
+  if (pic.image.rows == pic.image.cols) return;
+  int square_size = pic.image.rows > pic.image.cols ? pic.image.cols : pic.image.rows;
+  cv::Mat squared_image = pic.image(cv::Rect(0, 0, square_size, square_size));
+  pic.image = squared_image;
 }
 
 

@@ -18,7 +18,7 @@
 
 class Mosaik
 {
-private:
+public:
 
   struct MosaikConf 
   {
@@ -26,9 +26,10 @@ private:
     uint width = 0;
     uint height = 0;
     // Pics size
+    const uint max_load_size = 200; //px
     uint sub_pic_size = 50; // [Computed]
     uint divisions = 80;
-    uint master_scale = 8;
+    uint master_scale = 4;
     // Border
     bool border = true;
     uint border_size = 2; // px
@@ -41,6 +42,10 @@ private:
     uint multi_offset = 3;
   } mosaik_conf;
 
+  void _load_master_from_path(std::string path);
+
+private:
+
   typedef struct 
   {
     cv::Mat image;         // Original resized
@@ -49,13 +54,11 @@ private:
     std::vector<std::pair<int,int>> at_col_row;
   } Pic;
 
-  void _load_master_from_path(std::string path);
+  
   void _pic_preproc(Pic &pic);
   void _alpha_blending(const cv::Mat src1, const cv::Mat src2, cv::Mat &dst, float alpha);
   void _similar_pic_for_img(cv::Mat target, Pic &out_similar_pic, const uint row, const uint col);
   uint _compares_rows_and_cols(Pic pic, const uint row, const uint col); 
-
-  uint _state = 0;
 
   cv::Mat _master;
   std::vector<Pic> _pics;
